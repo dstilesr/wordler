@@ -8,3 +8,8 @@ dependencies = [
     "pydantic==2.10.6",
     "pydantic-settings==2.7.1",
 ]
+
+[dependency-groups]
+dev = [
+    "ipython>=8.31.0,<9",
+]
