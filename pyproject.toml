@@ -1,0 +1,7 @@
+[project]
+name = "wordler"
+version = "0.1.0"
+description = "Bot to play wordle!"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
