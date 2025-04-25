@@ -38,3 +38,25 @@ def test_evaluate_guess(env_settings):
     result_4 = environment.evaluate_guess(guess_4)
     assert result_4 == [2, 2, 2, 2, 2], "Incorrectly evaluated correct guess"
 
+
+def test_invalid_guess(env_settings):
+    """
+    Test that an invalid guess raises a ValueError.
+    :param env_settings:
+    :return:
+    """
+    environment = Environment(
+        word="horse",
+        settings=env_settings,
+    )
+
+    invalid_guesses = [
+        "horsey",  # too long
+        "hor",     # too short
+        "h0rse",  # contains a number
+        "hhkhh",  # Not a word
+    ]
+
+    for guess in invalid_guesses:
+        with pytest.raises(ValueError):
+            environment.evaluate_guess(guess)
