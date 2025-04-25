@@ -1440,6 +1440,7 @@ blist
 blite
 blizz
 bloat
+block
 blocs
 bloke
 blond
@@ -10030,6 +10031,7 @@ shoos
 shoot
 shope
 shops
+shore
 shorl
 shorn
 shote

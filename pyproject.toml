@@ -1,6 +1,6 @@
 [project]
 name = "wordler"
-version = "0.1.0"
+version = "0.0.1"
 description = "Bot to play wordle!"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -12,4 +12,13 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ipython>=8.31.0,<9",
+    "pytest>=8.3,<9",
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    ".",
 ]

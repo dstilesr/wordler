@@ -163,3 +163,4 @@ cython_debug/
 
 .python-version
 assets/words.txt
+uv.lock
