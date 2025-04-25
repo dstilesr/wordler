@@ -1,7 +1,6 @@
 import random
-from functools import partial
+from collections import Counter
 from typing import Optional, Set, List
-from collections import Counter, defaultdict
 
 from .settings import EnvSettings
 from ..constants import WORDS_FILE
