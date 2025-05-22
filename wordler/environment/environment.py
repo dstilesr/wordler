@@ -1,5 +1,5 @@
 import random
-from collections import Counter
+from loguru import logger
 from typing import Optional, Set, List
 
 from .settings import EnvSettings
@@ -39,7 +39,6 @@ class Environment:
 
         self.__word = word
         self.__guesses = 0
-        self.__letter_counts = Counter(word)
 
     @property
     def word(self) -> str:
@@ -93,16 +92,31 @@ class Environment:
         if not self.validate_word(guess):
             raise ValueError(f"Invalid guess: {guess}")
 
+        logger.debug("Guess submitted: '{}'", guess)
         self.__guesses += 1
-        if guess == self.word:
-            return [2] * 5
+        values = [0] * 5
 
-        result = []
-        for i, letter in enumerate(guess):
-            if letter == self.word[i]:
-                result.append(2)
-            elif letter in self.word:
-                result.append(1)
-            else:
-                result.append(0)
-        return result
+        unmatched = []
+        for idx, (guess_letter, real) in enumerate(zip(guess, self.word)):
+            if guess_letter == real:
+                values[idx] = 2
+                continue
+
+            unmatched.append(idx)
+
+        logger.debug(
+            "Unmatched letter indices: {}",
+            ", ".join(map(str, unmatched))
+        )
+
+        # Evaluate unmatched letters
+        remaining = [self.word[idx] for idx in unmatched]
+        remaining_guess = [guess[idx] for idx in unmatched]
+        for idx, letter in zip(unmatched, remaining_guess):
+            if letter in remaining:
+                values[idx] = 1
+                remaining.remove(letter)
+
+        return values
+
+

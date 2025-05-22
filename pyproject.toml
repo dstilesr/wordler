@@ -5,6 +5,8 @@ description = "Bot to play wordle!"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "loguru>=0.7.3,<0.8",
+    "numpy==2.2.5",
     "pydantic==2.10.6",
     "pydantic-settings==2.7.1",
     "torch>=2.7.0,<3",
