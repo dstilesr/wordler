@@ -12,6 +12,16 @@ class GameState:
     guessed_words: List[str] = field(default_factory=list)
     guess_results: List[List[int]] = field(default_factory=list)
 
+    def add_guess(self, word: str, result: List[int]):
+        """
+        Add a guess to the game state.
+        :param word:
+        :param result:
+        :return:
+        """
+        self.guessed_words.append(word)
+        self.guess_results.append(result)
+
     def get_input_sequences(self) -> Tuple[List[int], List[int]]:
         """
         Get input sequences for the models.
