@@ -3,6 +3,7 @@ from torch import nn
 
 from.self_attn import SelfAttention
 from .settings import ActorModelSettings
+from .positional_encode import PositionalEncoding
 
 
 class ActorModel(nn.Module):
@@ -10,7 +11,11 @@ class ActorModel(nn.Module):
     Actor model for the Wordle game.
     """
 
-    def __init__(self, settings: ActorModelSettings, vocabulary_size: int):
+    def __init__(
+            self,
+            settings: ActorModelSettings,
+            vocabulary_size: int,
+            dtype: torch.dtype = torch.float32):
         """
         Initialize the actor model.
         :param settings:
@@ -22,17 +27,21 @@ class ActorModel(nn.Module):
         self.letter_embedding = nn.Embedding(
             num_embeddings=28,
             embedding_dim=settings.embedding_dim,
-            dtype=torch.float32
+            dtype=dtype
         )
         self.feedback_embedding = nn.Embedding(
             num_embeddings=5,
             embedding_dim=settings.embedding_dim,
-            dtype=torch.float32
+            dtype=dtype
+        )
+        self.pos_encoder = PositionalEncoding(
+            embedding_dim=2 * settings.embedding_dim,
+            dtype=dtype
         )
         self.reducer = nn.Linear(
             in_features=2 * settings.embedding_dim,
             out_features=settings.embedding_dim,
-            dtype=torch.float32
+            dtype=dtype
         )
 
         self.sequence_layers = nn.ModuleList([
@@ -50,7 +59,7 @@ class ActorModel(nn.Module):
             nn.Linear(
                 in_features=settings.embedding_dim,
                 out_features=settings.embedding_dim,
-                dtype=torch.float32
+                dtype=dtype
             )
             for _ in range(self.num_layers)
         ])
@@ -62,7 +71,7 @@ class ActorModel(nn.Module):
         self.out_layer = nn.Linear(
             in_features=settings.embedding_dim,
             out_features=vocabulary_size,
-            dtype=torch.float32
+            dtype=dtype
         )
 
     def forward(
@@ -84,6 +93,7 @@ class ActorModel(nn.Module):
 
         #: Shape: (batch_size, seq_len, 2 * embedding_dim)
         embed = torch.concat((letters_embed, results_embed), dim=-1)
+        embed = self.pos_encoder(embed)
 
         #: Shape: (batch_size, seq_len, embedding_dim)
         x = self.reducer(embed)
