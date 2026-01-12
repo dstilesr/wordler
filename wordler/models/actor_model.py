@@ -3,6 +3,7 @@ from torch import nn
 
 from .self_attn import SelfAttention
 from .settings import ActorModelSettings
+from ..constants import TOKEN_MAP, RESULT_MAP
 from .positional_encode import PositionalEncoding
 
 
@@ -26,10 +27,14 @@ class ActorModel(nn.Module):
 
         # Initialize layers
         self.letter_embedding = nn.Embedding(
-            num_embeddings=28, embedding_dim=settings.embedding_dim, dtype=dtype
+            num_embeddings=len(TOKEN_MAP),
+            embedding_dim=settings.embedding_dim,
+            dtype=dtype,
         )
         self.feedback_embedding = nn.Embedding(
-            num_embeddings=5, embedding_dim=settings.embedding_dim, dtype=dtype
+            num_embeddings=len(RESULT_MAP),
+            embedding_dim=settings.embedding_dim,
+            dtype=dtype,
         )
         self.pos_encoder = PositionalEncoding(
             embedding_dim=2 * settings.embedding_dim, dtype=dtype

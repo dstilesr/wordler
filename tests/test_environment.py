@@ -2,6 +2,7 @@ import sys
 import pytest
 from loguru import logger
 
+from wordler import constants as const
 from wordler.environment import Environment, EnvSettings
 
 
@@ -120,3 +121,29 @@ def test_invalid_guess(env_settings):
     for guess in invalid_guesses:
         with pytest.raises(ValueError):
             environment.evaluate_guess(guess)
+
+
+def test_state_updates(env_settings):
+    """
+    Test that the game state is evaluated correctly as guesses are submitted.
+    :param env_settings:
+    """
+    env = Environment(word="purse", settings=env_settings)
+    guesses = ["boils", "scold", "curse", "purse"]
+    gs, fb = env.get_state()
+    assert len(gs) == len(fb) == 1, "Invalid initialization"
+    assert (
+        gs[0] == const.TOKEN_MAP["[CLS]"] and fb[0] == const.RESULT_MAP["[CLS]"]
+    )
+
+    for g in guesses:
+        feedback = env.evaluate_guess(g)
+        gs, fb = env.get_state()
+        assert len(gs) == len(fb), "Sequence length mismatch"
+
+        assert gs[-1] == const.TOKEN_MAP["[SEP]"]
+        assert fb[-1] == const.RESULT_MAP["[SEP]"]
+
+        for i in range(len(g)):
+            assert gs[-(len(g) + 1 - i)] == const.TOKEN_MAP[g[i]]
+            assert fb[-(len(feedback) + 1 - i)] == const.RESULT_MAP[feedback[i]]

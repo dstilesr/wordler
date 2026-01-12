@@ -3,7 +3,7 @@ from loguru import logger
 from typing import Optional, Set, List
 
 from .settings import EnvSettings
-from ..constants import WORDS_FILE
+from ..constants import WORDS_FILE, TOKEN_MAP, RESULT_MAP
 
 
 class Environment:
@@ -39,7 +39,9 @@ class Environment:
             raise ValueError(f"Invalid word: {word}")
 
         self.__word = word
-        self.__guesses = 0
+        self.__guesses = []
+        self.__guesses_vec = [TOKEN_MAP["[CLS]"]]
+        self.__feedback_vec = [RESULT_MAP["[CLS]"]]
 
     @property
     def word(self) -> str:
@@ -47,6 +49,13 @@ class Environment:
         The target word to guess.
         """
         return self.__word
+
+    @property
+    def guesses(self) -> list[list[str]]:
+        """
+        List of guesses that have been submitted by the player.
+        """
+        return self.__guesses
 
     def validate_word(self, word: str) -> bool:
         """
@@ -82,20 +91,47 @@ class Environment:
         word = random.choice(lst)
         return cls(word, settings=settings, words_set=words)
 
+    def __update_state(self, guess: str, feedback: list[int]):
+        """
+        Update the internal state with the guess and the feedback received for it.
+        :param guess:
+        :param feedback:
+        :return:
+        """
+        self.__guesses.append(guess)
+
+        self.__guesses_vec.extend(TOKEN_MAP[letter] for letter in guess)
+        self.__guesses_vec.append(TOKEN_MAP["[SEP]"])
+
+        self.__feedback_vec.extend(RESULT_MAP[fb] for fb in feedback)
+        self.__feedback_vec.append(RESULT_MAP["[SEP]"])
+
+    def get_state(self) -> tuple[List[int], List[int]]:
+        """
+        Get the tuple of guess vector, feedback vector that represent the state
+        of the game.
+        :return:
+        """
+        return self.__guesses_vec, self.__feedback_vec
+
     def evaluate_guess(self, guess: str) -> List[int]:
         """
         Evaluate a guess. For each letter in the guess, return:
         - 2 if the letter is in the correct position
         - 1 if the letter is in the word but in the wrong position
         - 0 if the letter is not in the word
+
+        Updates the list of guesses that have been submitted for the given game
+        and the guess and feedback vectors as well.
         :param guess:
         :return:
         """
         if not self.validate_word(guess):
             raise ValueError(f"Invalid guess: {guess}")
+        elif len(self.guesses) > 5:
+            raise ValueError("Maximum number of guesses submitted already!")
 
         logger.debug("Guess submitted: '{}'", guess)
-        self.__guesses += 1
         values = [0] * 5
 
         unmatched = []
@@ -118,4 +154,5 @@ class Environment:
                 values[idx] = 1
                 remaining.remove(letter)
 
+        self.__update_state(guess, values)
         return values

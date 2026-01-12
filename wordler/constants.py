@@ -35,6 +35,13 @@ TOKEN_MAP = {
     "y": 25,
     "z": 26,
     "[SEP]": 27,
+    "[CLS]": 28,
 }
 
-RESULT_MAP: Dict[int | Literal["[SEP]"], int] = {0: 1, 1: 2, 2: 3, "[SEP]": 4}
+RESULT_MAP: Dict[int | Literal["[SEP]", "[CLS]"], int] = {
+    0: 1,
+    1: 2,
+    2: 3,
+    "[SEP]": 4,
+    "[CLS]": 5,
+}
