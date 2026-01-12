@@ -43,18 +43,19 @@ class SelfAttention(nn.Module):
         keys: torch.Tensor = self.key(x)
         values = self.value(x)
 
+        #: Shape (batch_size, seq_len, seq_len)
         scores = torch.matmul(queries, keys.transpose(1, 2)) / math.sqrt(
             self.output_dim
-        )  #: Shape (batch_size, seq_len, seq_len)
+        )
 
         if mask is not None:
-            mask_expand = mask.unsqueeze(1)  #: Shape (batch_size, 1, seq_len)
+            #: Shape (batch_size, 1, seq_len)
+            mask_expand = mask.unsqueeze(1)
             scores = scores + torch.where(mask_expand.eq(0), -1e9, 0).to(
                 scores.dtype
             )
         weights = self.softmax(scores)
 
-        out_seq = torch.matmul(
-            weights, values
-        )  #: Shape (batch_size, seq_len, output_dim)
+        #: Shape (batch_size, seq_len, output_dim)
+        out_seq = torch.matmul(weights, values)
         return out_seq

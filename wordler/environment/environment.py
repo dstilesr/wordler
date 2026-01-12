@@ -66,6 +66,13 @@ class Environment:
         self.__ended = False
 
     @property
+    def ended(self) -> bool:
+        """
+        Whether the game has ended.
+        """
+        return self.__ended
+
+    @property
     def word(self) -> str:
         """
         The target word to guess.
@@ -73,7 +80,7 @@ class Environment:
         return self.__word
 
     @property
-    def guesses(self) -> list[list[str]]:
+    def guesses(self) -> list[str]:
         """
         List of guesses that have been submitted by the player.
         """
@@ -137,6 +144,13 @@ class Environment:
         :return:
         """
         return self.__guesses_vec, self.__feedback_vec
+
+    @property
+    def won(self) -> bool:
+        """
+        Whether the game has been won.
+        """
+        return self.__ended and (self.guesses[-1] == self.word)
 
     def compute_reward(self, feedback: list[int]) -> float:
         """
