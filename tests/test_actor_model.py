@@ -38,27 +38,19 @@ def test_forward_pass(model):
         low=0,
         high=28,
         size=(1, 5),  #: Batch size of 1 and sequence length of 5
-        dtype=torch.long
+        dtype=torch.long,
     )
     feedback_seq = torch.randint(
         low=0,
         high=5,
         size=(1, 5),  #: Batch size of 1 and sequence length of 5
-        dtype=torch.long
+        dtype=torch.long,
     )
     mask = torch.ones((1, 5), dtype=torch.bool)
 
     with torch.no_grad():
-        output = model(
-            letters_seq,
-            feedback_seq,
-            mask=mask
-        )
-        output_2 = model(
-            letters_seq,
-            feedback_seq,
-            mask=None
-        )
+        output = model(letters_seq, feedback_seq, mask=mask)
+        output_2 = model(letters_seq, feedback_seq, mask=None)
 
     assert output.shape == (1, 32), "Output shape is incorrect."
     assert output_2.shape == (1, 32), "Output shape is incorrect."

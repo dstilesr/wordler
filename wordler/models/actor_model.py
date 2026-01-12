@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 
-from.self_attn import SelfAttention
+from .self_attn import SelfAttention
 from .settings import ActorModelSettings
 from .positional_encode import PositionalEncoding
 
@@ -12,10 +12,11 @@ class ActorModel(nn.Module):
     """
 
     def __init__(
-            self,
-            settings: ActorModelSettings,
-            vocabulary_size: int,
-            dtype: torch.dtype = torch.float32):
+        self,
+        settings: ActorModelSettings,
+        vocabulary_size: int,
+        dtype: torch.dtype = torch.float32,
+    ):
         """
         Initialize the actor model.
         :param settings:
@@ -25,60 +26,58 @@ class ActorModel(nn.Module):
 
         # Initialize layers
         self.letter_embedding = nn.Embedding(
-            num_embeddings=28,
-            embedding_dim=settings.embedding_dim,
-            dtype=dtype
+            num_embeddings=28, embedding_dim=settings.embedding_dim, dtype=dtype
         )
         self.feedback_embedding = nn.Embedding(
-            num_embeddings=5,
-            embedding_dim=settings.embedding_dim,
-            dtype=dtype
+            num_embeddings=5, embedding_dim=settings.embedding_dim, dtype=dtype
         )
         self.pos_encoder = PositionalEncoding(
-            embedding_dim=2 * settings.embedding_dim,
-            dtype=dtype
+            embedding_dim=2 * settings.embedding_dim, dtype=dtype
         )
         self.reducer = nn.Linear(
             in_features=2 * settings.embedding_dim,
             out_features=settings.embedding_dim,
-            dtype=dtype
+            dtype=dtype,
         )
 
-        self.sequence_layers = nn.ModuleList([
-            SelfAttention(
-                input_dim=settings.embedding_dim,
-                output_dim=settings.embedding_dim,
-            )
-            for _ in range(self.num_layers)
-        ])
-        self.dropouts = nn.ModuleList([
-            nn.Dropout(p=settings.dropout)
-            for _ in range(self.num_layers)
-        ])
-        self.fcs = nn.ModuleList([
-            nn.Linear(
-                in_features=settings.embedding_dim,
-                out_features=settings.embedding_dim,
-                dtype=dtype
-            )
-            for _ in range(self.num_layers)
-        ])
-        self.activations = nn.ModuleList([
-            nn.ReLU()
-            for _ in range(self.num_layers)
-        ])
+        self.sequence_layers = nn.ModuleList(
+            [
+                SelfAttention(
+                    input_dim=settings.embedding_dim,
+                    output_dim=settings.embedding_dim,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
+        self.dropouts = nn.ModuleList(
+            [nn.Dropout(p=settings.dropout) for _ in range(self.num_layers)]
+        )
+        self.fcs = nn.ModuleList(
+            [
+                nn.Linear(
+                    in_features=settings.embedding_dim,
+                    out_features=settings.embedding_dim,
+                    dtype=dtype,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
+        self.activations = nn.ModuleList(
+            [nn.ReLU() for _ in range(self.num_layers)]
+        )
         self.out_dropout = nn.Dropout(p=settings.dropout)
         self.out_layer = nn.Linear(
             in_features=settings.embedding_dim,
             out_features=vocabulary_size,
-            dtype=dtype
+            dtype=dtype,
         )
 
     def forward(
-            self,
-            letters_seq: torch.Tensor,
-            results_seq: torch.Tensor,
-            mask: torch.Tensor | None = None) -> torch.Tensor:
+        self,
+        letters_seq: torch.Tensor,
+        results_seq: torch.Tensor,
+        mask: torch.Tensor | None = None,
+    ) -> torch.Tensor:
         """
         Predict the next guess.
         :param letters_seq: Shape (batch_size, seq_len)

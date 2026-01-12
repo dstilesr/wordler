@@ -22,10 +22,11 @@ class Environment:
         return set(words)
 
     def __init__(
-            self,
-            word: str,
-            settings: Optional[EnvSettings] = None,
-            words_set: Optional[Set[str]] = None):
+        self,
+        word: str,
+        settings: Optional[EnvSettings] = None,
+        words_set: Optional[Set[str]] = None,
+    ):
         """
         Initialize the environment with a word.
         :param word:
@@ -62,9 +63,10 @@ class Environment:
 
     @classmethod
     def from_random_word(
-            cls,
-            settings: Optional[EnvSettings] = None,
-            random_seed: Optional[int] = None) -> "Environment":
+        cls,
+        settings: Optional[EnvSettings] = None,
+        random_seed: Optional[int] = None,
+    ) -> "Environment":
         """
         Create a new environment with a random word.
         :param settings:
@@ -105,8 +107,7 @@ class Environment:
             unmatched.append(idx)
 
         logger.debug(
-            "Unmatched letter indices: {}",
-            ", ".join(map(str, unmatched))
+            "Unmatched letter indices: {}", ", ".join(map(str, unmatched))
         )
 
         # Evaluate unmatched letters
@@ -118,5 +119,3 @@ class Environment:
                 remaining.remove(letter)
 
         return values
-
-

@@ -9,6 +9,7 @@ class GameState:
     """
     Tracks state of the game.
     """
+
     guessed_words: List[str] = field(default_factory=list)
     guess_results: List[List[int]] = field(default_factory=list)
 
@@ -29,7 +30,7 @@ class GameState:
         """
         return (
             self.words_to_tokens(self.guessed_words),
-            self.results_to_tokens(self.guess_results)
+            self.results_to_tokens(self.guess_results),
         )
 
     @staticmethod

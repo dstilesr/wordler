@@ -16,6 +16,7 @@ dependencies = [
 dev = [
     "ipython>=8.31.0,<9",
     "pytest>=8.3,<9",
+    "ruff>=0.14.11",
 ]
 
 [tool.uv.sources]
@@ -33,3 +34,6 @@ testpaths = [
 pythonpath = [
     ".",
 ]
+
+[tool.ruff]
+line-length = 80

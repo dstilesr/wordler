@@ -6,6 +6,7 @@ class EnvSettings(BaseSettings):
     """
     Settings for the game environment.
     """
+
     invalid_word_penalty: float = Field(
         -1.0,
         description="Penalty for submitting an invalid word.",

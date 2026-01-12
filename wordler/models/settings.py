@@ -6,6 +6,7 @@ class ActorModelSettings(BaseModel):
     """
     Settings for the Actor Model.
     """
+
     embedding_dim: int = Field(
         default=128,
         description="Dimension of the embedding layers.",
