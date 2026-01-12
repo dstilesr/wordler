@@ -1,9 +1,30 @@
 import random
 from loguru import logger
+from dataclasses import dataclass
 from typing import Optional, Set, List
 
 from .settings import EnvSettings
 from ..constants import WORDS_FILE, TOKEN_MAP, RESULT_MAP
+
+
+@dataclass(slots=True)
+class GuessResult:
+    """
+    Result of submitting a guess to the game.
+
+    Fields:
+    -------
+    - reward: The reward given for this step.
+    - ended: Whether the game ends after this move.
+    - feedback: For each letter in the guess, the feedback list will have:
+        - 2 if the letter is in the correct position
+        - 1 if the letter is in the word but in the wrong position
+        - 0 if the letter is not in the word
+    """
+
+    reward: float
+    ended: bool
+    feedback: List[int]
 
 
 class Environment:
@@ -42,6 +63,7 @@ class Environment:
         self.__guesses = []
         self.__guesses_vec = [TOKEN_MAP["[CLS]"]]
         self.__feedback_vec = [RESULT_MAP["[CLS]"]]
+        self.__ended = False
 
     @property
     def word(self) -> str:
@@ -106,6 +128,8 @@ class Environment:
         self.__feedback_vec.extend(RESULT_MAP[fb] for fb in feedback)
         self.__feedback_vec.append(RESULT_MAP["[SEP]"])
 
+        self.__ended = (guess == self.word) or (len(self.__guesses) > 5)
+
     def get_state(self) -> tuple[List[int], List[int]]:
         """
         Get the tuple of guess vector, feedback vector that represent the state
@@ -114,9 +138,28 @@ class Environment:
         """
         return self.__guesses_vec, self.__feedback_vec
 
-    def evaluate_guess(self, guess: str) -> List[int]:
+    def compute_reward(self, feedback: list[int]) -> float:
         """
-        Evaluate a guess. For each letter in the guess, return:
+        Compute the reward for a guess given its feedback.
+        :param feedback:
+        :return:
+        """
+        if all(e == 2 for e in feedback):
+            return self.settings.win_reward
+
+        reward = 0.0
+        for e in feedback:
+            if e == 1:
+                reward += self.settings.letter_present_reward
+            elif e == 2:
+                reward += self.settings.correct_letter_reward
+
+        return reward
+
+    def evaluate_guess(self, guess: str) -> GuessResult:
+        """
+        Evaluate a guess. Return the feedback per letter, reward for the step, and whether the game has ended.
+        For each letter in the guess, the feedback list will have:
         - 2 if the letter is in the correct position
         - 1 if the letter is in the word but in the wrong position
         - 0 if the letter is not in the word
@@ -126,10 +169,10 @@ class Environment:
         :param guess:
         :return:
         """
-        if not self.validate_word(guess):
+        if self.__ended:
+            raise ValueError("The game has already ended.")
+        elif not self.validate_word(guess):
             raise ValueError(f"Invalid guess: {guess}")
-        elif len(self.guesses) > 5:
-            raise ValueError("Maximum number of guesses submitted already!")
 
         logger.debug("Guess submitted: '{}'", guess)
         values = [0] * 5
@@ -155,4 +198,8 @@ class Environment:
                 remaining.remove(letter)
 
         self.__update_state(guess, values)
-        return values
+        return GuessResult(
+            reward=self.compute_reward(values),
+            ended=self.__ended,
+            feedback=values,
+        )
