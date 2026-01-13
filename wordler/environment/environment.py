@@ -161,7 +161,7 @@ class Environment:
         if all(e == 2 for e in feedback):
             return self.settings.win_reward
 
-        reward = 0.0
+        reward = self.settings.step_penalty
         for e in feedback:
             if e == 1:
                 reward += self.settings.letter_present_reward

@@ -71,6 +71,7 @@ class Trainer:
         self,
         optimizer: torch.optim.Optimizer,
         target: str | None = None,
+        temperature: float = 1.0,
     ):
         """
         Run a game and update the model's values as it plays with the given
@@ -95,7 +96,9 @@ class Trainer:
             with torch.no_grad():
                 # Select action
                 idx = int(
-                    torch.distributions.Categorical(logits=logits.flatten())
+                    torch.distributions.Categorical(
+                        logits=logits.flatten() / temperature
+                    )
                     .sample((1,))
                     .numpy()[0]
                 )
@@ -119,8 +122,12 @@ class Trainer:
         :return:
         """
         self.model.train()
+        coef = (1 - self.settings.temperature) / total_games
         optimizer = torch.optim.SGD(
             self.model.parameters(), lr=self.settings.learning_rate
         )
-        for _ in tqdm(range(total_games)):
-            self.run_game(optimizer, random.choice(self.vocabulary))
+        for i in tqdm(range(total_games)):
+            temperature = coef * i + self.settings.temperature
+            self.run_game(
+                optimizer, random.choice(self.vocabulary), temperature
+            )

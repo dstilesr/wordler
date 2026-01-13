@@ -9,5 +9,6 @@ class TrainSettings(BaseSettings):
 
     learning_rate: float = Field(default=0.001, le=1.0, gt=0.0)
     discount: float = Field(default=1.0, le=1.0, ge=0.0)
+    temperature: float = Field(default=2.0, gt=0.0)
 
     model_config = SettingsConfigDict(env_prefix="TRAINING_")

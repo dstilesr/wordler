@@ -27,5 +27,10 @@ class EnvSettings(BaseSettings):
         description="Reward for placing a correct letter in the wrong position.",
         gt=0.0,
     )
+    step_penalty: float = Field(
+        default=-0.05,
+        le=0.0,
+        description="Penalty per step to encourage quick game ends",
+    )
 
     model_config = SettingsConfigDict(env_prefix="ENV_")
