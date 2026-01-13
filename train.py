@@ -6,7 +6,12 @@ from typing import Literal
 from wordler.training.run_train import run_training
 
 
-def main(total_episodes: int = 60_000, output_path: Path | None = None, model_path: Path | None = None, log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"):
+def main(
+    total_episodes: int = 60_000,
+    output_path: Path | None = None,
+    model_path: Path | None = None,
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO",
+):
     """
     Run training for the wordle model.
     :param total_episodes: Total episodes to run for training.
@@ -25,6 +30,7 @@ def main(total_episodes: int = 60_000, output_path: Path | None = None, model_pa
     run_training(total_episodes, output_path, model_path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import typer
+
     typer.run(main)

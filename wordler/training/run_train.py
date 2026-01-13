@@ -60,61 +60,16 @@ def create_or_load_model(
     :raises FileNotFoundError: If checkpoint directory or required files don't exist
     """
     if checkpoint_dir is not None:
-        if not checkpoint_dir.exists():
-            raise FileNotFoundError(
-                f"Checkpoint directory not found: {checkpoint_dir}"
-            )
-
-        if not checkpoint_dir.is_dir():
-            raise ValueError(
-                f"Checkpoint path must be a directory: {checkpoint_dir}"
-            )
-
-        model_file = checkpoint_dir / "model.pt"
-        settings_file = checkpoint_dir / "settings.json"
-
-        if not model_file.exists():
-            raise FileNotFoundError(
-                f"Model file not found in checkpoint: {model_file}"
-            )
-
-        if not settings_file.exists():
-            raise FileNotFoundError(
-                f"Settings file not found in checkpoint: {settings_file}"
-            )
-
-        logger.info("Loading model from checkpoint directory: {}", checkpoint_dir)
-
-        # Load settings from JSON file using Pydantic
-        settings_json = settings_file.read_text()
-        loaded_settings = ActorModelSettings.model_validate_json(settings_json)
-        logger.info("Loaded model settings from {}", settings_file)
-        logger.debug("Model settings: {}", loaded_settings)
-
-        # Create model with loaded architecture settings
-        model = ActorModel(
-            settings=loaded_settings,
+        # Use the classmethod to load from checkpoint
+        model = ActorModel.from_checkpoint(
+            checkpoint_dir=checkpoint_dir,
             vocabulary_size=vocabulary_size,
             dtype=torch.float32,
         )
-
-        # Load state dict
-        state_dict = torch.load(model_file, map_location="cpu")
-        model.load_state_dict(state_dict)
-
-        # Validate vocabulary size by checking output layer
-        loaded_vocab_size = model.out_layer.out_features
-        if loaded_vocab_size != vocabulary_size:
-            raise ValueError(
-                f"Model vocabulary size mismatch: loaded model has "
-                f"{loaded_vocab_size}, but current vocabulary has {vocabulary_size}"
-            )
-
-        logger.info(
-            "Successfully loaded model with vocabulary size {}", vocabulary_size
-        )
     else:
-        logger.info("Creating new model with vocabulary size {}", vocabulary_size)
+        logger.info(
+            "Creating new model with vocabulary size {}", vocabulary_size
+        )
         model = ActorModel(
             settings=actor_settings,
             vocabulary_size=vocabulary_size,
@@ -278,7 +233,9 @@ def run_training(
     vocabulary_size = len(vocabulary)
 
     # Create or load model
-    model = create_or_load_model(checkpoint_dir, actor_settings, vocabulary_size)
+    model = create_or_load_model(
+        checkpoint_dir, actor_settings, vocabulary_size
+    )
 
     # Create trainer
     trainer = Trainer(

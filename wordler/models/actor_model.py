@@ -1,5 +1,7 @@
 import torch
+from pathlib import Path
 from torch import nn
+from loguru import logger
 
 from .self_attn import SelfAttention
 from .settings import ActorModelSettings
@@ -76,6 +78,84 @@ class ActorModel(nn.Module):
             out_features=vocabulary_size,
             dtype=dtype,
         )
+
+    @classmethod
+    def from_checkpoint(
+        cls,
+        checkpoint_dir: Path,
+        vocabulary_size: int,
+        dtype: torch.dtype = torch.float32,
+    ) -> "ActorModel":
+        """
+        Load an ActorModel from a checkpoint directory.
+
+        The checkpoint directory must contain:
+        - model.pt: Saved model state dict
+        - settings.json: Model architecture settings
+
+        :param checkpoint_dir: Path to checkpoint directory
+        :param vocabulary_size: Vocabulary size for the model
+        :param dtype: Data type for model parameters (default: float32)
+        :return: Loaded ActorModel instance
+        :raises FileNotFoundError: If checkpoint directory or required files don't exist
+        :raises ValueError: If checkpoint path is not a directory or vocabulary size mismatch
+        """
+        if not checkpoint_dir.exists():
+            raise FileNotFoundError(
+                f"Checkpoint directory not found: {checkpoint_dir}"
+            )
+
+        if not checkpoint_dir.is_dir():
+            raise ValueError(
+                f"Checkpoint path must be a directory: {checkpoint_dir}"
+            )
+
+        model_file = checkpoint_dir / "model.pt"
+        settings_file = checkpoint_dir / "settings.json"
+
+        if not model_file.exists():
+            raise FileNotFoundError(
+                f"Model file not found in checkpoint: {model_file}"
+            )
+
+        if not settings_file.exists():
+            raise FileNotFoundError(
+                f"Settings file not found in checkpoint: {settings_file}"
+            )
+
+        logger.info(
+            "Loading model from checkpoint directory: {}", checkpoint_dir
+        )
+
+        # Load settings from JSON file using Pydantic
+        settings_json = settings_file.read_text()
+        settings = ActorModelSettings.model_validate_json(settings_json)
+        logger.info("Loaded model settings from {}", settings_file)
+        logger.debug("Model settings: {}", settings)
+
+        # Create model with loaded architecture settings
+        model = cls(
+            settings=settings, vocabulary_size=vocabulary_size, dtype=dtype
+        )
+
+        # Load state dict
+        state_dict = torch.load(
+            model_file, map_location="cpu", weights_only=True
+        )
+        model.load_state_dict(state_dict)
+
+        # Validate vocabulary size by checking output layer
+        loaded_vocab_size = model.out_layer.out_features
+        if loaded_vocab_size != vocabulary_size:
+            raise ValueError(
+                f"Model vocabulary size mismatch: loaded model has "
+                f"{loaded_vocab_size}, but expected {vocabulary_size}"
+            )
+
+        logger.info(
+            "Successfully loaded model with vocabulary size {}", vocabulary_size
+        )
+        return model
 
     def forward(
         self,
