@@ -27,12 +27,12 @@ class ActorModel(nn.Module):
 
         # Initialize layers
         self.letter_embedding = nn.Embedding(
-            num_embeddings=len(TOKEN_MAP),
+            num_embeddings=len(TOKEN_MAP) + 1,
             embedding_dim=settings.embedding_dim,
             dtype=dtype,
         )
         self.feedback_embedding = nn.Embedding(
-            num_embeddings=len(RESULT_MAP),
+            num_embeddings=len(RESULT_MAP) + 1,
             embedding_dim=settings.embedding_dim,
             dtype=dtype,
         )

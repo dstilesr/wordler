@@ -1,8 +1,8 @@
-from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class ActorModelSettings(BaseModel):
+class ActorModelSettings(BaseSettings):
     """
     Settings for the Actor Model.
     """
@@ -28,3 +28,5 @@ class ActorModelSettings(BaseModel):
         ge=0.0,
         lt=1.0,
     )
+
+    model_config = SettingsConfigDict(env_prefix="MODEL_")

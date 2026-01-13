@@ -1,5 +1,5 @@
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class EnvSettings(BaseSettings):
@@ -27,3 +27,5 @@ class EnvSettings(BaseSettings):
         description="Reward for placing a correct letter in the wrong position.",
         gt=0.0,
     )
+
+    model_config = SettingsConfigDict(env_prefix="ENV_")

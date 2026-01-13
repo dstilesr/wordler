@@ -33,18 +33,45 @@ class Trainer:
     total_rewards: list[float] = field(default_factory=list)
     wins: list[bool] = field(default_factory=list)
 
-    def perform_update(self, logits: list[torch.Tensor], rewards: list[float], actions: list[int]):
+    def perform_update(
+        self,
+        logits: list[torch.Tensor],
+        rewards: list[float],
+        actions: list[int],
+        optimizer: torch.optim.Optimizer,
+    ):
         """
         Perform gradient updates using an episode trajectory.
         :param logits:
         :param rewards:
         :param actions:
+        :param optimizer:
         :return:
         """
-        logger.warning("Not Implemented!")
-        pass
+        steps = len(rewards)
+        returns = [0.0 for _ in range(steps)]
+        returns[-1] = rewards[-1]
+        for i in range(1, steps):
+            returns[steps - 1 - i] = (
+                rewards[steps - 1 - i]
+                + self.settings.discount * returns[steps - i]
+            )
 
-    def run_game(self, target: str | None = None):
+        optimizer.zero_grad()
+        loss = 0.0
+        for i in range(steps):
+            dist = torch.distributions.Categorical(logits=logits[i].flatten())
+            logprob = dist.log_prob(torch.tensor(actions[i]))
+            loss -= returns[i] * logprob
+
+        loss.backward()
+        optimizer.step()
+
+    def run_game(
+        self,
+        optimizer: torch.optim.Optimizer,
+        target: str | None = None,
+    ):
         """
         Run a game and update the model's values as it plays with the given
         rewards.
@@ -66,8 +93,9 @@ class Trainer:
                 torch.tensor([curr_guesses]), torch.tensor([curr_feedback])
             )
             with torch.no_grad():
+                # Select action
                 idx = int(
-                    torch.distributions.Categorical(logits.flatten())
+                    torch.distributions.Categorical(logits=logits.flatten())
                     .sample((1,))
                     .numpy()[0]
                 )
@@ -80,7 +108,7 @@ class Trainer:
             game_states.append(self.current_game.get_state())
             game_logits.append(logits)
 
-        self.perform_update(game_logits, game_rewards, actions)
+        self.perform_update(game_logits, game_rewards, actions, optimizer)
         self.wins.append(self.current_game.won)
         self.total_rewards.append(sum(game_rewards))
 
@@ -90,5 +118,9 @@ class Trainer:
         :param total_games:
         :return:
         """
-        for i in tqdm(range(total_games)):
-            self.run_game(random.choice(self.vocabulary))
+        self.model.train()
+        optimizer = torch.optim.SGD(
+            self.model.parameters(), lr=self.settings.learning_rate
+        )
+        for _ in tqdm(range(total_games)):
+            self.run_game(optimizer, random.choice(self.vocabulary))
