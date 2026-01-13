@@ -126,7 +126,9 @@ class Trainer:
         optimizer = torch.optim.SGD(
             self.model.parameters(), lr=self.settings.learning_rate
         )
+        logger.info("Starting training. Temperature: {}", self.settings.temperature)
         for i in tqdm(range(total_games)):
+            # Temperature will move towards 1 as training progresses
             temperature = coef * i + self.settings.temperature
             self.run_game(
                 optimizer, random.choice(self.vocabulary), temperature
