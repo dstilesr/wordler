@@ -45,34 +45,61 @@ def create_settings_from_env() -> tuple[
 
 
 def create_or_load_model(
-    model_path: Optional[Path],
+    checkpoint_dir: Optional[Path],
     actor_settings: ActorModelSettings,
     vocabulary_size: int,
 ) -> ActorModel:
     """
-    Create a new ActorModel or load from a saved checkpoint.
+    Create a new ActorModel or load from a saved checkpoint directory.
 
-    :param model_path: Path to saved model checkpoint, or None to create new
-    :param actor_settings: Settings for model architecture
+    :param checkpoint_dir: Path to checkpoint directory containing model.pt and settings.json, or None to create new
+    :param actor_settings: Settings for model architecture (used only if creating new model)
     :param vocabulary_size: Expected vocabulary size
     :return: ActorModel instance
     :raises ValueError: If loaded model has incorrect vocabulary size
+    :raises FileNotFoundError: If checkpoint directory or required files don't exist
     """
-    if model_path is not None:
-        if not model_path.exists():
-            raise FileNotFoundError(f"Model file not found: {model_path}")
+    if checkpoint_dir is not None:
+        if not checkpoint_dir.exists():
+            raise FileNotFoundError(
+                f"Checkpoint directory not found: {checkpoint_dir}"
+            )
 
-        logger.info("Loading model from {}", model_path)
+        if not checkpoint_dir.is_dir():
+            raise ValueError(
+                f"Checkpoint path must be a directory: {checkpoint_dir}"
+            )
 
-        # Create model with same architecture
+        model_file = checkpoint_dir / "model.pt"
+        settings_file = checkpoint_dir / "settings.json"
+
+        if not model_file.exists():
+            raise FileNotFoundError(
+                f"Model file not found in checkpoint: {model_file}"
+            )
+
+        if not settings_file.exists():
+            raise FileNotFoundError(
+                f"Settings file not found in checkpoint: {settings_file}"
+            )
+
+        logger.info("Loading model from checkpoint directory: {}", checkpoint_dir)
+
+        # Load settings from JSON file using Pydantic
+        settings_json = settings_file.read_text()
+        loaded_settings = ActorModelSettings.model_validate_json(settings_json)
+        logger.info("Loaded model settings from {}", settings_file)
+        logger.debug("Model settings: {}", loaded_settings)
+
+        # Create model with loaded architecture settings
         model = ActorModel(
-            settings=actor_settings,
+            settings=loaded_settings,
             vocabulary_size=vocabulary_size,
             dtype=torch.float32,
         )
 
         # Load state dict
-        state_dict = torch.load(model_path, map_location="cpu")
+        state_dict = torch.load(model_file, map_location="cpu")
         model.load_state_dict(state_dict)
 
         # Validate vocabulary size by checking output layer
@@ -87,9 +114,7 @@ def create_or_load_model(
             "Successfully loaded model with vocabulary size {}", vocabulary_size
         )
     else:
-        logger.info(
-            "Creating new model with vocabulary size {}", vocabulary_size
-        )
+        logger.info("Creating new model with vocabulary size {}", vocabulary_size)
         model = ActorModel(
             settings=actor_settings,
             vocabulary_size=vocabulary_size,
@@ -120,6 +145,7 @@ def compute_moving_average(
 
 def save_training_results(
     model: ActorModel,
+    actor_settings: ActorModelSettings,
     wins: list[bool],
     total_rewards: list[float],
     output_path: Path,
@@ -129,10 +155,12 @@ def save_training_results(
 
     Creates a timestamped folder containing:
     - model.pt: Saved model state dict
+    - settings.json: Model architecture settings
     - win_rate.png: Moving average of win rate
     - total_rewards.png: Moving average of total rewards per episode
 
     :param model: Trained ActorModel
+    :param actor_settings: Model architecture settings
     :param wins: List of boolean values indicating wins
     :param total_rewards: List of total rewards per episode
     :param output_path: Base output directory
@@ -145,10 +173,16 @@ def save_training_results(
 
     logger.info("Saving results to {}", results_dir)
 
-    # Save model
+    # Save model weights
     model_path = results_dir / "model.pt"
     torch.save(model.state_dict(), model_path)
     logger.info("Saved model to {}", model_path)
+
+    # Save model settings using Pydantic
+    settings_path = results_dir / "settings.json"
+    settings_json = actor_settings.model_dump_json(indent=2)
+    settings_path.write_text(settings_json)
+    logger.info("Saved model settings to {}", settings_path)
 
     # Determine window size based on number of episodes
     num_episodes = len(wins)
@@ -224,14 +258,14 @@ def save_training_results(
 def run_training(
     num_episodes: int,
     output_path: Path,
-    model_path: Optional[Path] = None,
+    checkpoint_dir: Optional[Path] = None,
 ) -> Path:
     """
     Main training function that orchestrates the entire training process.
 
     :param num_episodes: Number of episodes to train for
     :param output_path: Base directory for saving results
-    :param model_path: Optional path to load existing model
+    :param checkpoint_dir: Optional path to checkpoint directory containing model.pt and settings.json
     :return: Path to results directory
     """
     logger.info("Starting training for {} episodes", num_episodes)
@@ -244,7 +278,7 @@ def run_training(
     vocabulary_size = len(vocabulary)
 
     # Create or load model
-    model = create_or_load_model(model_path, actor_settings, vocabulary_size)
+    model = create_or_load_model(checkpoint_dir, actor_settings, vocabulary_size)
 
     # Create trainer
     trainer = Trainer(
@@ -270,6 +304,7 @@ def run_training(
     # Save results
     results_dir = save_training_results(
         model=model,
+        actor_settings=actor_settings,
         wins=trainer.wins,
         total_rewards=trainer.total_rewards,
         output_path=output_path,
