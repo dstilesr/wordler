@@ -348,7 +348,6 @@ aimed
 aimee
 aimel
 aimer
-ain't
 ainee
 aines
 ainoi
@@ -2279,7 +2278,6 @@ bysen
 bytes
 byway
 byzas
-c'mon
 caaba
 caama
 cabal
@@ -2381,7 +2379,6 @@ campo
 camps
 campy
 camus
-can't
 canal
 canch
 candy
@@ -3428,7 +3425,6 @@ cysts
 cyton
 czars
 czech
-d'art
 dabba
 dabby
 dabih
@@ -6255,7 +6251,6 @@ hazer
 hazes
 hazle
 hazri
-he'll
 heads
 heady
 heald
@@ -6892,12 +6887,10 @@ isles
 islet
 islot
 ismal
-isn't
 issei
 issue
 issus
 istle
-it'll
 itala
 itali
 italy
@@ -7723,7 +7716,6 @@ kyrie
 kytes
 kythe
 kyudo
-l'vov
 laang
 laari
 laban
@@ -8400,7 +8392,6 @@ lyssa
 lythe
 lytic
 lytta
-ma'am
 maars
 mabel
 macan
@@ -9286,7 +9277,6 @@ nanes
 nanga
 nanna
 nanny
-nano-
 nantz
 naomi
 napal
@@ -9340,7 +9330,6 @@ nazes
 nazim
 nazir
 nazis
-ne'er
 neaps
 nears
 neath
@@ -12321,7 +12310,6 @@ shaws
 shawy
 shays
 shcha
-she'd
 sheaf
 sheal
 shear
@@ -14687,7 +14675,6 @@ tyste
 tythe
 tzaam
 tzars
-u.s.a
 uangs
 uaupe
 uayeb
@@ -15457,9 +15444,6 @@ wayao
 wayne
 wazir
 wazoo
-we'll
-we're
-we've
 weaky
 weald
 weals
@@ -15590,7 +15574,6 @@ white
 whits
 whity
 whizz
-who'd
 whoas
 whole
 whomp
@@ -15714,7 +15697,6 @@ woman
 wombs
 womby
 women
-won't
 wonga
 wongs
 wonks
@@ -15839,7 +15821,6 @@ xyris
 xysma
 xysti
 xysts
-y'all
 yabbi
 yabby
 yacal
@@ -15983,7 +15964,6 @@ yonis
 yoops
 yores
 yorky
-you'd
 youff
 young
 yourn
