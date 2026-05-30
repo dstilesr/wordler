@@ -168,6 +168,9 @@ class Environment:
             elif e == 2:
                 reward += self.settings.correct_letter_reward
 
+        if self.guesses[-1] in self.guesses[:-1]:
+            reward += self.settings.repeat_word_penalty
+
         return reward
 
     def evaluate_guess(self, guess: str) -> GuessResult:

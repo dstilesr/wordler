@@ -78,7 +78,7 @@ class Trainer:
         rewards.
         """
         self.current_game = (
-            Environment(word=target, settings=self.game_settings)
+            Environment(word=target, settings=self.game_settings, words_set=set(self.vocabulary))
             if target
             else Environment.from_random_word(self.game_settings)
         )

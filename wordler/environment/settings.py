@@ -32,5 +32,9 @@ class EnvSettings(BaseSettings):
         le=0.0,
         description="Penalty per step to encourage quick game ends",
     )
+    repeat_word_penalty: float = Field(
+        default=-1.0,
+        description="Penalty for repeating a word in a game"
+    )
 
     model_config = SettingsConfigDict(env_prefix="ENV_")

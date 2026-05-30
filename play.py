@@ -36,7 +36,7 @@ def display_guess_with_feedback(guess: str, feedback: list[int]) -> None:
     print()
 
 
-@app.command()
+@app.command("play-game")
 def play_game(word: str | None = None):
     """
     Play a wordle game.
@@ -73,7 +73,7 @@ def play_game(word: str | None = None):
         )
 
 
-@app.command()
+@app.command("play-model")
 def play_model(
     checkpoint_dir: Path,
     word: str | None = None,

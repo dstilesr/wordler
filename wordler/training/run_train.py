@@ -1,4 +1,5 @@
 import torch
+import random
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
@@ -230,6 +231,10 @@ def run_training(
 
     # Load vocabulary
     vocabulary = load_vocabulary()
+
+    #: TODO - subsample for temporary testing
+    vocabulary = random.sample(vocabulary, 250)
+    vocabulary.sort()
     vocabulary_size = len(vocabulary)
 
     # Create or load model
